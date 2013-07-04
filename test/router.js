@@ -656,4 +656,44 @@ $(document).ready(function() {
     Backbone.history.checkUrl();
   });
 
+  test('#2588 - correct handling of anchor links.', 0, function() {
+    Backbone.history.stop();
+
+    var pages = new Backbone.Collection([
+      {"id": 1, "content": "Main page. <a id=\"anchor1\" href=\"#link1\">Link 1.</a>", "title": "Main page", "url": ""},
+      {"id": 2, "content": "Page #2. <a id=\"anchor2\" href=\"#link2\">Link 2.</a>", "title": "Page #2", "url": "page2"}
+    ]);
+
+    var PageView = Backbone.View.extend({
+      el: '#main',
+      render: function() {
+        content = this.model.get('content');
+        this.$el.html(content);
+      }
+    });
+
+    var Router = Backbone.Router.extend({
+      routes: {
+        "": "pages",
+        "*url/": "pages"
+      },
+      pages: function (url) {
+        if (url == null) {
+          url = "";
+        }
+        model = pages.findWhere({url: url});
+        page_view = new PageView;
+        page_view.model = model;
+        page_view.render();
+      }
+    });
+    var router = new Router;
+
+    Backbone.history.start({pushState: true, hashChange: false});
+
+    Backbone.history.navigate("/", true);
+    Backbone.history.navigate("/page2/", true);
+    Backbone.history.navigate("/", true);
+  });
+
 });
